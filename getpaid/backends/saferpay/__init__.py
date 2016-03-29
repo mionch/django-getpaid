@@ -94,8 +94,12 @@ class PaymentProcessor(PaymentProcessorBase):
             }
         }
 
+        recurring_field = PaymentProcessor.get_backend_setting('recurring_field', None)
+        if recurring_field and getattr(self.payment.order, recurring_field, False):
+            call_json_data["RecurringOptions"] = {"Initial": True}
+
         response_json = self._post('Payment/v1/PaymentPage/Initialize', call_json_data)
-        self.payment.external_id = response_json['Token']
+        self.payment.external_id = self._pack_external_id(response_json['Token'])
 
         gateway_url = response_json['RedirectUrl']
         return gateway_url, 'GET', {}
@@ -106,17 +110,20 @@ class PaymentProcessor(PaymentProcessorBase):
         Verifies the status of the payment and updates it.
 
         """
-
+        token, transaction_id = cls._unpack_external_id(payment.external_id)
         call_json_data = {
-            'Token': payment.external_id
+            'Token': token
         }
         try:
             response_json = cls._post('Payment/v1/PaymentPage/Assert', call_json_data)
             try:
                 status = response_json['Transaction']['Status']
                 amount = response_json['Transaction']['Amount']
+                transaction_id = response_json['Transaction']['Id']
                 amount_currency = amount['CurrencyCode']
                 amount_value = amount['Value']
+
+                payment.external_id = cls._pack_external_id(token, transaction_id)
 
                 if status in ['AUTHORIZED', 'CAPTURED']:
                     logger.info('Payment {} accepted with status {} and amount {} {}.'.format(
@@ -132,3 +139,13 @@ class PaymentProcessor(PaymentProcessorBase):
             logger.info('Payment {} rejected. Info: {}'.format(payment.id, e))
         payment.on_failure()
         return False
+
+    @staticmethod
+    def _pack_external_id(token, transaction_id=''):
+        return u'{}_{}'.format(token, transaction_id)
+
+    @staticmethod
+    def _unpack_external_id(external_id):
+        token, transaction_id = external_id.split('_')
+        transaction_id = transaction_id or None
+        return token, transaction_id
