@@ -205,17 +205,23 @@ class PaymentProcessor(PaymentProcessorBase):
         response = requests.post(self._API_URL, data=contents).text
 
         xml_response = ElementTree.fromstring(response)
-        # ret_code_element = xml_response.find('Extra/PROC_RET_CD')
-        # ret_code = ret_code_element.text if ret_code_element else None
+        ret_code_element = xml_response.find('Extra/PROC_RET_CD')
+        ret_code = ret_code_element.text if ret_code_element is not None else None
+        if ret_code != '00':
+            logger.warning('Payment {} not processed yet'.format(self.payment.id))
+            return False
+
         status_element = xml_response.find('Extra/TRANS_STAT')
         status = status_element.text if status_element is not None else None
         logger.warning('Received status {} for payment {}'.format(status, self.payment.id))
         if status in EserviceTransactionStatus.SUCCESS_STATUSES:
             logger.warning('Processing success for payment {}'.format(self.payment.id))
             self.payment.on_success()
+            return True
         elif status in EserviceTransactionStatus.ERROR_STATUSES:
             logger.warning('Processing failure for payment {}'.format(self.payment.id))
             self.payment.on_failure()
+            return True
 
 
     @staticmethod
