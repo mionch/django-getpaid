@@ -243,7 +243,7 @@ class PaymentProcessor(PaymentProcessorBase):
         with commit_on_success_or_atomic():
             payment = Payment.objects.get(id=payment_id)
             payment.change_status('in_progress')
-        get_payment_status_task().delay(payment_id)
+        get_payment_status_task.delay(payment_id)
 
 
     @staticmethod
