@@ -26,7 +26,7 @@ class PaymentProcessor(PaymentProcessorBase):
     BACKEND_ACCEPTED_CURRENCY = (u'EUR', u'USD', u'GBP', u'CHF')
     BACKEND_LOGO_URL = u'getpaid/backends/saferpay/saferpay_logo.png'
 
-    _GATEWAY_URL = u'https://www.saferpay.com/api'
+    _GATEWAY_URL = u'https://www.saferpay.com/api/'
     _TEST_GATEWAY_URL = u'https://test.saferpay.com/api/'
 
     @classmethod
