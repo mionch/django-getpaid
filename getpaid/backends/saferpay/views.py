@@ -11,5 +11,5 @@ class AssertPaymentView(View):
     def get(self, request, *args, **kwargs):
         payment = get_object_or_404(Payment, pk=kwargs.get('pk'))
         if PaymentProcessor.update_payment_status(payment):
-            return redirect('getpaid-success-fallback', pk=payment.pk)
-        return redirect('getpaid-failure-fallback', pk=payment.pk)
+            return redirect('getpaid:success-fallback', pk=payment.pk)
+        return redirect('getpaid:failure-fallback', pk=payment.pk)

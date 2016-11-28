@@ -89,8 +89,8 @@ class PaymentProcessor(PaymentProcessorBase):
                 "Description": self.get_order_description(self.payment, self.payment.order),
             },
             "ReturnUrls": {
-                "Success": build_absolute_uri('getpaid-saferpay-success', **url_data),
-                "Fail": build_absolute_uri('getpaid-saferpay-failure', **url_data),
+                "Success": build_absolute_uri('getpaid:saferpay:success', **url_data),
+                "Fail": build_absolute_uri('getpaid:saferpay:failure', **url_data),
             }
         }
 
