@@ -76,12 +76,21 @@ class FallbackView(RedirectView):
         from getpaid.models import Payment
         self.payment = get_object_or_404(Payment, pk=self.kwargs['pk'])
 
+        order_id_field = getattr(settings, 'GETPAID_FALLBACK_ORDER_ID_FIELD', None)
+        if order_id_field is not None:
+            order_id = getattr(self.payment.order, order_id_field, None)
+            if order_id is None:
+                raise ImproperlyConfigured('Order object does not have a value in the field specified '
+                                           'by the GETPAID_FALLBACK_ORDER_ID_FIELD setting')
+        else:
+            order_id = self.payment.order_id
+
         if self.success:
             url_name = getattr(settings, 'GETPAID_SUCCESS_URL_NAME', None)
             if url_name is not None:
-                return reverse(url_name, kwargs={'pk': self.payment.order_id})
+                return reverse(url_name, kwargs={'pk': order_id})
         else:
             url_name = getattr(settings, 'GETPAID_FAILURE_URL_NAME', None)
             if url_name is not None:
-                return reverse(url_name, kwargs={'pk': self.payment.order_id})
+                return reverse(url_name, kwargs={'pk': order_id})
         return self.payment.order.get_absolute_url()
