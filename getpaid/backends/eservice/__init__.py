@@ -75,9 +75,10 @@ class PaymentProcessor(PaymentProcessorBase):
     BACKEND_ACCEPTED_CURRENCY = (u'PLN',)
     BACKEND_LOGO_URL = u'getpaid/backends/eservice/eservice_logo.png'
 
-    _TEST_GATEWAY_URL = u'https://testvpos.eservice.com.pl/'
     _GATEWAY_URL = u'https://pay.eservice.com.pl/'
+    _TEST_GATEWAY_URL = u'https://testvpos.eservice.com.pl/'
     _API_URL = u'https://pay.eservice.com.pl:19445/fim/api'
+    _TEST_API_URL = u'https://testvpos.eservice.com.pl:19445/fim/api'
     _ACCEPTED_LANGS = (u'pl', u'en')
 
     def generate_payment_id(self):
@@ -107,6 +108,18 @@ class PaymentProcessor(PaymentProcessorBase):
         if not match:
             logger.warning('Malformed hash value for transaction, aborting')
         return match
+
+    @property
+    def api_url(self):
+        if PaymentProcessor.get_backend_setting('test'):
+            return self._TEST_API_URL
+        return self._API_URL
+
+    @property
+    def gateway_url(self):
+        if PaymentProcessor.get_backend_setting('test'):
+            return self._TEST_GATEWAY_URL
+        return self._GATEWAY_URL
 
     def get_gateway_url(self, request):
         """
@@ -174,11 +187,11 @@ class PaymentProcessor(PaymentProcessorBase):
         logger.info(u'New payment using GET: %s' % params)
         for key in params.keys():
             params[key] = six.text_type(params[key]).encode('utf-8')
-        return self._GATEWAY_URL + 'fim/eservicegate?' + urlencode(params), 'GET', {}
+        return self.gateway_url + 'fim/eservicegate?' + urlencode(params), 'GET', {}
 
     def get_token(self, params):
         data = six.text_type(urlencode(params)).encode('utf-8')
-        url = self._GATEWAY_URL + 'pg/token'
+        url = self.gateway_url + 'pg/token'
         request = Request(url, data)
         response = urlopen(request)
         response_data = self._unpack_response_data(response.read().decode('utf-8'))
@@ -202,7 +215,7 @@ class PaymentProcessor(PaymentProcessorBase):
         etree.SubElement(extra_options, "ORDERSTATUS").text = 'QUERY'
         contents = etree.tostring(xml_body, encoding='utf-8')
 
-        response = requests.post(self._API_URL, data=contents).text
+        response = requests.post(self.api_url, data=contents).text
 
         xml_response = ElementTree.fromstring(response)
         ret_code_element = xml_response.find('Extra/PROC_RET_CD')
