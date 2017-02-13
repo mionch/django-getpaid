@@ -258,16 +258,18 @@ class PaymentProcessor(PaymentProcessorBase):
             payment.change_status('in_progress')
         get_payment_status_task.delay(payment_id)
 
-
     @staticmethod
     def payment_error(payment_id=None):
         """
         Payment was cancelled.
         """
         Payment = apps.get_model('getpaid', 'Payment')
+        logger.warning('Received payment error for payment {} - querying for status for confirmation'.format(payment_id))
         with commit_on_success_or_atomic():
             payment = Payment.objects.get(id=payment_id)
-            payment.on_failure()
+            # payment.on_failure()
+            payment.change_status('in_progress')
+        get_payment_status_task.delay(payment_id)
 
     @staticmethod
     def _unpack_response_data(data):
