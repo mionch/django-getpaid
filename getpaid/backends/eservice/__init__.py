@@ -235,6 +235,9 @@ class PaymentProcessor(PaymentProcessorBase):
             logger.warning('Processing failure for payment {}'.format(self.payment.id))
             self.payment.on_failure()
             return True
+        else:
+            logger.warning('Processing status unknown for payment {}: {}'.format(self.payment.id, status))
+
 
 
     @staticmethod
