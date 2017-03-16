@@ -61,7 +61,13 @@ class FailureView(RedirectView):
 
         payment_external_id = request.POST.get('OrderId')
         status = request.POST.get('mdStatus')
-        error_message = six.text_type(html_parser.unescape(request.POST.get('mdErrorMsg')))
+        error_unprocessed = request.POST.get('mdErrorMsg')
+        error_message = "no error message"
+        if error_unprocessed:
+            try:
+                error_message = six.text_type(html_parser.unescape(error_unprocessed))
+            except:
+                error_message = 'failed to process error message'
         payment = Payment.objects.filter(external_id=payment_external_id).first()
         logger.error(u"Payment %s failed on backend error %s with status %s" % (payment, error_message, status))
         PaymentProcessor.payment_error(payment.pk)
