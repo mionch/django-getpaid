@@ -32,6 +32,7 @@ class PaymentProcessor(PaymentProcessorBase):
     _ALLOWED_IP = ('195.150.9.37',)
     _ACCEPTED_LANGS = ('pl', 'en', 'de', 'it', 'fr', 'es', 'cz', 'ru', 'bg')
     _GATEWAY_URL = 'https://ssl.dotpay.eu/'
+    _TEST_GATEWAY_URL = 'https://ssl.dotpay.pl/test_payment/'
     _ONLINE_SIG_FIELDS = (
         'id', 'control', 't_id', 'amount', 'email', 'service', 'code', 'username', 'password', 't_status'
     )
@@ -107,6 +108,12 @@ class PaymentProcessor(PaymentProcessorBase):
         else:
             return u'http://%s%s' % (get_domain(), url)
 
+    @property
+    def gateway_url(self):
+        if PaymentProcessor.get_backend_setting('test'):
+            return self._TEST_GATEWAY_URL
+        return self._GATEWAY_URL
+
     def get_gateway_url(self, request):
         """
         Routes a payment to Gateway, should return URL for redirection.
@@ -147,7 +154,12 @@ class PaymentProcessor(PaymentProcessorBase):
         if PaymentProcessor.get_backend_setting('tax', False):
             params['tax'] = 1
 
-        gateway_url = PaymentProcessor.get_backend_setting('gateway_url', self._GATEWAY_URL)
+        forced_channel = getattr(self.payment, 'forced_channel', None)
+        if forced_channel is not None:
+            params['channel'] = forced_channel
+            params['ch_lock'] = True
+
+        gateway_url = PaymentProcessor.get_backend_setting('gateway_url', self.gateway_url)
 
         if PaymentProcessor.get_backend_setting('method', 'get').lower() == 'post':
             return gateway_url, 'POST', params
