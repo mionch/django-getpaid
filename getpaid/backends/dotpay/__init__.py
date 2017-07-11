@@ -137,6 +137,10 @@ class PaymentProcessor(PaymentProcessorBase):
 
         if user_data['email']:
             params['email'] = user_data['email']
+        if user_data['firstname']:
+            params['firstname'] = user_data['firstname']
+        if user_data['lastname']:
+            params['lastname'] = user_data['lastname']
 
         if user_data['lang'] and user_data['lang'].lower() in PaymentProcessor._ACCEPTED_LANGS:
             params['lang'] = user_data['lang'].lower()
@@ -157,7 +161,15 @@ class PaymentProcessor(PaymentProcessorBase):
         forced_channel = getattr(self.payment, 'forced_channel', None)
         if forced_channel is not None:
             params['channel'] = forced_channel
-            params['ch_lock'] = True
+            params['ch_lock'] = 1
+
+        multipayment_data = getattr(self.payment, 'multipayment_data', None)
+        if multipayment_data is not None:
+            for merchant_num, merchant_data in enumerate(multipayment_data, 1):
+                params['id{}'.format(merchant_num)] = merchant_data['id']
+                params['amount{}'.format(merchant_num)] = merchant_data['amount']
+                params['description{}'.format(merchant_num)] = merchant_data['description']
+                params['control{}'.format(merchant_num)] = u'{}{}'.format(params['control'], merchant_data['control_suffix'])
 
         gateway_url = PaymentProcessor.get_backend_setting('gateway_url', self.gateway_url)
 
