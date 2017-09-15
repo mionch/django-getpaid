@@ -31,7 +31,7 @@ class PaymentProcessor(PaymentProcessorBase):
 
     _ALLOWED_IP = ('195.150.9.37',)
     _ACCEPTED_LANGS = ('pl', 'en', 'de', 'it', 'fr', 'es', 'cz', 'ru', 'bg')
-    _GATEWAY_URL = 'https://ssl.dotpay.eu/'
+    _GATEWAY_URL = 'https://ssl.dotpay.pl/'
     _TEST_GATEWAY_URL = 'https://ssl.dotpay.pl/test_payment/'
     _ONLINE_SIG_FIELDS = (
         'id', 'control', 't_id', 'amount', 'email', 'service', 'code', 'username', 'password', 't_status'
