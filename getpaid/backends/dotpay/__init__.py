@@ -163,6 +163,10 @@ class PaymentProcessor(PaymentProcessorBase):
             params['channel'] = forced_channel
             params['ch_lock'] = 1
 
+        payment_channels = getattr(self.payment, 'payment_channels', None)
+        if payment_channels is not None:
+            params['channel_groups'] = payment_channels
+
         multipayment_data = getattr(self.payment, 'multipayment_data', None)
         if multipayment_data is not None:
             for merchant_num, merchant_data in enumerate(multipayment_data, 1):
