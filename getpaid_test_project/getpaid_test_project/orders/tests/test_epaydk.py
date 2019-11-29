@@ -2,13 +2,12 @@
 
 from collections import OrderedDict
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.apps import apps
 from django.test import TestCase
 from django.test.client import Client
 from django.test.utils import override_settings
-from django.utils.six.moves.urllib.parse import urlparse, parse_qs, \
-    parse_qsl, urlencode
+from django.utils.six import Module_six_moves_urllib_parse
 from django.http import HttpRequest
 from django.utils import six
 import mock
@@ -52,7 +51,7 @@ class EpaydkBackendTestCase(TestCase):
         self.assertEqual(actual[1], "GET")
         self.assertEqual(actual[2], {})
 
-        actual = list(urlparse(actual[0]))
+        actual = list(Module_six_moves_urllib_parse.urlparse(actual[0]))
         self.assertEqual(actual[0], 'https')
         self.assertEqual(actual[1], 'ssl.ditonlinebetalingssystem.dk')
         self.assertEqual(actual[2], '/integration/ewindow/Default.aspx')
@@ -78,7 +77,7 @@ class EpaydkBackendTestCase(TestCase):
         ]
         md5hash = payproc.compute_hash(OrderedDict(expected))
         expected.append(('hash', md5hash))
-        self.assertListEqual(expected, parse_qsl(actual[4]))
+        self.assertListEqual(expected, Module_six_moves_urllib_parse.parse_qsl(actual[4]))
         self.assertEqual(actual[5], '')
 
     def test_online_invalid(self):
@@ -105,7 +104,7 @@ class EpaydkBackendTestCase(TestCase):
         ]
         md5hash = payproc.compute_hash(OrderedDict(params))
         params.append(('hash', md5hash))
-        query = urlencode(params)
+        query = Module_six_moves_urllib_parse.urlencode(params)
         url = reverse('getpaid:epaydk:success') + '?' + query
         response = self.client.get(url, data=params)
         expected_url = reverse('getpaid:success-fallback',
@@ -132,7 +131,7 @@ class EpaydkBackendTestCase(TestCase):
         ]
         md5hash = payproc.compute_hash(OrderedDict(params))
         params.append(('hash', md5hash))
-        query = urlencode(params)
+        query = Module_six_moves_urllib_parse.urlencode(params)
         url = reverse('getpaid:epaydk:online') + '?' + query
         response = self.client.get(url, data=params)
         self.assertEqual(response.content, b'OK')
@@ -155,7 +154,7 @@ class EpaydkBackendTestCase(TestCase):
             (u'cardno', u'444444XXXXXX4000'),
         ]
         params.append(('hash', '1234567'))
-        query = urlencode(params)
+        query = Module_six_moves_urllib_parse.urlencode(params)
         url = reverse('getpaid:epaydk:online') + '?' + query
         response = self.client.get(url, data=params)
         self.assertEqual(response.content, b'MALFORMED')

@@ -6,9 +6,9 @@ from importlib import import_module
 from django.apps import apps
 from django.conf import settings
 from django.utils import six
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.functional import SimpleLazyObject
-from django.utils.six.moves.urllib.parse import parse_qsl
+from django.utils.six import Module_six_moves_urllib_parse
 import django
 
 Site = SimpleLazyObject(lambda: apps.get_model('sites.Site'))
@@ -85,7 +85,7 @@ def build_absolute_uri(view_name, scheme='https', domain=None,
 
 
 def qs_to_ordered_params(query_string):
-    params_list = parse_qsl(unicode(query_string))
+    params_list = Module_six_moves_urllib_parse.parse_qsl(unicode(query_string))
     params = OrderedDict()
     for field, value in params_list:
         if isinstance(value, (list, tuple)):

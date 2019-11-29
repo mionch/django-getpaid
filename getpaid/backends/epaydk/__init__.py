@@ -9,7 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import get_language_from_request
 from django.apps import apps
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.six.moves.urllib.parse import urlencode
+from django.utils.six import Module_six_moves_urllib_parse
 from getpaid.utils import get_domain
 from django.db import transaction
 
@@ -208,7 +208,7 @@ class PaymentProcessor(PaymentProcessorBase):
                                                  **url_data)
         params['hash'] = PaymentProcessor.compute_hash(params)
 
-        url = u"{}?{}".format(self.BACKEND_GATEWAY_BASE_URL, urlencode(params))
+        url = u"{}?{}".format(self.BACKEND_GATEWAY_BASE_URL, Module_six_moves_urllib_parse.urlencode(params))
         return (url, 'GET', {})
 
     def get_logo_url(self):
